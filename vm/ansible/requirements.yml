@@ -1,0 +1,6 @@
+---
+# https://docs.ansible.com/ansible/galaxy.html#installing-multiple-roles-from-a-file
+# This file needs to be referenced in your ansible_local config in your Vagrantfile.
+- src: geerlingguy.php
+- src: geerlingguy.composer
+...

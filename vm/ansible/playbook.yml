@@ -1,0 +1,21 @@
+---
+-
+    hosts: all
+    vars:
+        php_install_recommends: no
+        php_enable_webserver: false
+        php_xdebug_remote_connect_back: true
+        php_packages:
+            - php
+            - php-cli
+            - php-zip
+            - php-apcu
+            - php-xml
+            - php-mbstring
+            - php-xdebug
+    roles:
+        # make sure these roles have been added to requirements.yml so they'll be automatically installed.
+        - geerlingguy.php
+        - geerlingguy.composer
+    become: true
+...

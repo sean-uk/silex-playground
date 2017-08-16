@@ -1,0 +1,14 @@
+---
+-
+    hosts: all
+    vars:
+        # my command to start the php internal webserver.
+        # based on https://stackoverflow.com/questions/30267329/how-do-i-run-phps-built-in-web-server-in-the-background
+        # 0.0.0.0 needs to be used in the vm: https://stackoverflow.com/a/37383090
+        php_internal_server_command: "nohup php -S 0.0.0.0:80 -t /app/public/ > /var/log/phpd.log 2>&1 &"
+    tasks:
+        -
+            name: start the php server
+            shell: "{{ php_internal_server_command }}"
+            become: true
+...
