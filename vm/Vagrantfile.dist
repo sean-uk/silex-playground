@@ -15,4 +15,9 @@ Vagrant.configure(2) do |config|
     ansible.playbook = "ansible/playbook.yml"
     ansible.galaxy_role_file = "ansible/requirements.yml"
   end
+
+  # Run the start php webserver task on every boot.
+  config.vm.provision "ansible_local", run: "always" do |ansible|
+    ansible.playbook = "ansible/start_php.yml"
+  end
 end
