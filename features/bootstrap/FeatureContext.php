@@ -1,5 +1,7 @@
 <?php
 
+require_once 'vendor/autoload.php';
+
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Behat\Tester\Exception\PendingException;
@@ -8,20 +10,22 @@ use Symfony\Component\HttpFoundation\Request;
 use PHPUnit\Framework\Assert;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
-
-require_once 'vendor/autoload.php';
+use Silex\Application;
+use SeanUk\Silex\Stack\Stack;
 
 /**
  * Defines application features from the specific context.
  */
 class FeatureContext implements Context
 {
-    /** @var StackApp */
+    /** @var Application $app */
     private $app;
 
     /** @var Response $last_response */
     private $last_response;
 
+    /** @var Stack $stack */
+    private $stack;
     /**
      * Initializes context.
      *
@@ -31,7 +35,10 @@ class FeatureContext implements Context
      */
     public function __construct()
     {
-        $this->app = StackApp::create();
+        // build an app to test
+        $this->app = new Application();
+        $this->stack = new Stack();
+        StackApp::build($this->app, $this->stack);
     }
 
     /**
@@ -49,7 +56,7 @@ class FeatureContext implements Context
      */
     public function iPostTheJsonObject(PyStringNode $json)
     {
-        $jsonString = (string) $json;
+        $jsonString = (string)$json;
 
         // construct a request. usage based on \Symfony\Component\HttpFoundation\Tests\RequestTest::testCreate
         /** @var Request $request */
@@ -115,5 +122,58 @@ class FeatureContext implements Context
 
         Assert::assertArrayHasKey('message', $data);
         Assert::assertNotEmpty($data['message']);
+    }
+
+    /**
+     * @Given the stack is empty
+     */
+    public function theStackIsEmpty()
+    {
+        $this->stack->flush();
+    }
+
+    /**
+     * @When I pop the stack (again)
+     */
+    public function iPopTheStack()
+    {
+        $request = Request::create('/pop');
+        $this->last_response = $this->app->handle($request);
+    }
+
+    /**
+     * @Then I should get a null response
+     */
+    public function iShouldGetANullResponse()
+    {
+        Assert::assertInstanceOf(JsonResponse::class, $this->last_response);
+        Assert::assertEquals('null', $this->last_response->getContent());
+    }
+
+    /**
+     * @Given this has been pushed onto the stack:
+     */
+    public function thisHasBeenPushedOntoTheStack(PyStringNode $json)
+    {
+        // bypass the app, just setup the stack directly
+        $json = (string) $json;
+        $this->stack->push($json);
+    }
+
+    /**
+     * @Then the response JSON should be
+     */
+    public function theResponseJsonShouldBe(PyStringNode $expectedJson)
+    {
+        $expectedJson = (string) $expectedJson;
+
+        // get the response json
+        Assert::assertInstanceOf(JsonResponse::class, $this->last_response);
+        $responseJson = $this->last_response->getContent();
+
+        // compare them as data structures rather than strings
+        $expectedData = json_decode($expectedJson, true);
+        $responseData = json_decode($responseJson, true);
+        Assert::assertEquals($expectedData, $responseData);
     }
 }

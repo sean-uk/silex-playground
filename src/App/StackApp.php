@@ -12,23 +12,37 @@ use Silex\Application;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use SeanUk\Silex\Stack\Stack;
 
 class StackApp
 {
     /**
-     * @return Application
+     * Add StackApp routes to silex app
+     *
+     * @param Application $app
+     * @param Stack $stack
      */
-    public static function create()
+    public static function build(Application $app, Stack $stack)
     {
-        $app = new Application();
-        $app->post('push', function (Request $request) {
+        // stack push
+        $app->post('push', function (Request $request) use ($stack) {
             $content = $request->getContent();
-            if (!json_decode($content)) {
-                return new JsonResponse(['success'=>false, 'message'=>'invalid content.'], Response::HTTP_BAD_REQUEST);
+            $pushed = $stack->push($content);
+            if ($pushed) {
+                return new JsonResponse(['success'=>true, 'message'=>'']);
             }
-            return new JsonResponse(['success'=>true, 'message'=>'']);
+            return new JsonResponse(['success'=>false, 'message'=>'invalid content.'], Response::HTTP_BAD_REQUEST);
         });
 
-        return $app;
+        // stack pop
+        $app->get('pop', function () use ($stack) {
+            // stack is empty? return null
+            if ($stack->isEmpty()) {
+                return new JsonResponse('null', Response::HTTP_BAD_REQUEST, [], true);
+            }
+
+            $record = $stack->pop();
+            return new JsonResponse($record, Response::HTTP_OK, [], true);
+        });
     }
 }

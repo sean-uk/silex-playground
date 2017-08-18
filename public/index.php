@@ -10,12 +10,15 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
+use SeanUk\Silex\Stack\Stack;
+use Symfony\Component\HttpFoundation\Request;
+use SeanUk\Silex\App\StackApp;
 
 // bootstrap silex
 $app = new Application();
 $app['debug'] = true;
 
-$app->get('/', function () {
+$app->get('', function () {
     return new Response('HELLO WORLD!');
 });
 
@@ -23,5 +26,8 @@ $app->get('reverse/{string}', function ($string) {
     $reversed = strrev($string);
     return new Response($reversed);
 });
+
+$stack = new Stack();
+StackApp::build($app, $stack);
 
 $app->run();
