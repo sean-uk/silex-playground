@@ -15,8 +15,13 @@ use Symfony\Component\HttpFoundation\Response;
 $app = new Application();
 $app['debug'] = true;
 
-$app->get('/', function() {
+$app->get('/', function () {
     return new Response('HELLO WORLD!');
+});
+
+$app->get('reverse/{string}', function ($string) {
+    $reversed = strrev($string);
+    return new Response($reversed);
 });
 
 $app->run();
