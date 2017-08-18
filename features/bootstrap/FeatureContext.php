@@ -51,10 +51,9 @@ class FeatureContext implements Context
     }
 
     /**
-     * @Given I post the JSON object
-     * @param PyStringNode $json
+     * @Given I post the JSON object :json
      */
-    public function iPostTheJsonObject(PyStringNode $json)
+    public function iPostTheJsonObject($json)
     {
         $jsonString = (string)$json;
 
@@ -133,7 +132,7 @@ class FeatureContext implements Context
     }
 
     /**
-     * @When I pop the stack (again)
+     * @When I pop the stack
      */
     public function iPopTheStack()
     {
@@ -151,19 +150,19 @@ class FeatureContext implements Context
     }
 
     /**
-     * @Given this has been pushed onto the stack:
+     * @Given this has been pushed onto the stack: :json
      */
-    public function thisHasBeenPushedOntoTheStack(PyStringNode $json)
+    public function thisHasBeenPushedOntoTheStack($json)
     {
-        // bypass the app, just setup the stack directly
+        // bypass the app, just setup the stack direct
         $json = (string) $json;
         $this->stack->push($json);
     }
 
     /**
-     * @Then the response JSON should be
+     * @Then the response JSON should be: :expectedJson
      */
-    public function theResponseJsonShouldBe(PyStringNode $expectedJson)
+    public function theResponseJsonShouldBe($expectedJson)
     {
         $expectedJson = (string) $expectedJson;
 

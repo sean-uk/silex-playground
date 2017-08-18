@@ -13,17 +13,11 @@ Feature: Stack push
     And the response error message should be empty
 
   Scenario: Posting a JSON object with some stuff in it
-    When I post the JSON object
-      """
-      {"id":1, "value":"something"}
-      """
+    When I post the JSON object '{"id":1, "value":"something"}'
     Then the response success should be true
     And the response error message should be empty
 
   Scenario: Posting a malformed JSON object
-    When I post the JSON object
-      """
-      'f[esr;gsergse]g[seg;seg
-      """
+    When I post the JSON object '"f[esr;gsergse]g[seg;seg'
     Then the response success should be false
     And the response error message should not be empty
