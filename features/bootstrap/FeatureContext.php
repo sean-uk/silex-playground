@@ -79,5 +79,41 @@ class FeatureContext implements Context
      */
     public function theResposeErrorMessageShouldBeEmpty()
     {
+        Assert::assertInstanceOf(JsonResponse::class, $this->last_response);
+
+        $json = $this->last_response->getContent();
+        $data = json_decode($json, true);
+
+        Assert::assertArrayHasKey('message', $data);
+        Assert::assertEmpty($data['message']);
+    }
+
+    /**
+     * @Then the response success should be false
+     */
+    public function theResponseSuccessShouldBeFalse()
+    {
+        Assert::assertInstanceOf(JsonResponse::class, $this->last_response);
+        Assert::assertEquals(Response::HTTP_BAD_REQUEST, $this->last_response->getStatusCode());
+
+        // decode and check the json response
+        $json = $this->last_response->getContent();
+        $data = json_decode($json, true);
+        Assert::assertArrayHasKey('success', $data);
+        Assert::assertEquals(false, $data['success']);
+    }
+
+    /**
+     * @Then the response error message should not be empty
+     */
+    public function theResponseErrorMessageShouldNotBeEmpty()
+    {
+        Assert::assertInstanceOf(JsonResponse::class, $this->last_response);
+
+        $json = $this->last_response->getContent();
+        $data = json_decode($json, true);
+
+        Assert::assertArrayHasKey('message', $data);
+        Assert::assertNotEmpty($data['message']);
     }
 }
