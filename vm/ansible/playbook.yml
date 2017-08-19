@@ -13,6 +13,7 @@
             - php-xml
             - php-mbstring
             - php-xdebug
+            - php-sqlite3
     roles:
         # make sure these roles have been added to requirements.yml so they'll be automatically installed.
         - geerlingguy.php
