@@ -14,6 +14,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use SeanUk\Silex\Stack\Stack;
 
+/**
+ * @todo use a proper controller instead of this thing
+ */
 class StackApp
 {
     /**

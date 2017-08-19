@@ -36,9 +36,7 @@ class FeatureContext implements Context
     public function __construct()
     {
         // build an app to test
-        $this->app = new Application();
-        $this->stack = new Stack();
-        StackApp::build($this->app, $this->stack);
+        $this->iStartANewSession();
     }
 
     /**
@@ -174,5 +172,15 @@ class FeatureContext implements Context
         $expectedData = json_decode($expectedJson, true);
         $responseData = json_decode($responseJson, true);
         Assert::assertEquals($expectedData, $responseData);
+    }
+
+    /**
+     * @When I start a new session
+     */
+    public function iStartANewSession()
+    {
+        $this->app = new Application();
+        $this->stack = new Stack();
+        StackApp::build($this->app, $this->stack);
     }
 }
