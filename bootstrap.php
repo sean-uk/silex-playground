@@ -10,12 +10,12 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 use SeanUk\Silex\Stack\Stack;
-use SeanUk\Silex\App\StackApp;
 use Silex\Provider\VarDumperServiceProvider;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Serializer\Encoder\YamlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use SeanUk\Silex\Controller\StackController;
+use Silex\Provider\ServiceControllerServiceProvider;
 
 // bootstrap silex
 $app = new Application();
@@ -43,5 +43,13 @@ $app['stack.serializer'] = function () {
     return $serializer;
 };
 
-$stack = new Stack($app['stack.path'], $app['stack.serializer'], 'yaml');
-StackApp::build($app, $stack);
+// configure the stack controller - {@see https://silex.symfony.com/doc/2.0/providers/service_controller.html#usage}
+$app->register(new ServiceControllerServiceProvider());
+$app['stack.controller'] = function () use ($app) {
+    $stack = new Stack($app['stack.path'], $app['stack.serializer'], 'yaml');
+    return new StackController($stack);
+};
+
+// configure stack routes
+$app->post('push', "stack.controller:pushAction");
+$app->get('pop', "stack.controller:popAction");

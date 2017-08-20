@@ -5,7 +5,6 @@ require_once 'vendor/autoload.php';
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Behat\Tester\Exception\PendingException;
-use SeanUk\Silex\App\StackApp;
 use Symfony\Component\HttpFoundation\Request;
 use PHPUnit\Framework\Assert;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,6 +15,8 @@ use org\bovigo\vfs\vfsStream;
 use Symfony\Component\Serializer\Encoder\YamlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Silex\Provider\ServiceControllerServiceProvider;
+use SeanUk\Silex\Controller\StackController;
 
 
 /**
@@ -55,6 +56,8 @@ class FeatureContext implements Context
         $encoders = [new YamlEncoder()];
         $normalizers = [new ObjectNormalizer()];
         $this->serializer = new Serializer($normalizers, $encoders);
+
+        $this->stack = new Stack($this->stack_path, $this->serializer, 'yaml');
 
         // build an app to test
         $this->iStartANewSession();
@@ -201,7 +204,16 @@ class FeatureContext implements Context
     public function iStartANewSession()
     {
         $this->app = new Application();
+
+        $app = $this->app;
+        $app->register(new ServiceControllerServiceProvider());
         $this->stack = new Stack($this->stack_path, $this->serializer, 'yaml');
-        StackApp::build($this->app, $this->stack);
+        $stack = $this->stack;
+        $app['stack.controller'] = function () use ($stack) {
+            return new StackController($stack);
+        };
+        // configure stack routes
+        $app->post('push', "stack.controller:pushAction");
+        $app->get('pop', "stack.controller:popAction");
     }
 }
