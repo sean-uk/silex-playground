@@ -11,14 +11,36 @@ declare(strict_types=1);
 
 namespace SeanUk\Silex\Stack;
 
+use Symfony\Component\Serializer\Serializer;
+
 class Stack
 {
     /** @var array $contents */
     private $contents;
 
-    public function __construct()
+    /** @var Serializer $serializer */
+    private $serializer;
+
+    /** @var string $format serialization format */
+    private $format;
+
+    /** @var string $path */
+    private $path;
+
+    /**
+     * Stack constructor.
+     * @param string $path the path to use for the stack file
+     * @param Serializer $serializer
+     * @param string $serializationFormat the name of a format supported by your serializer
+     */
+    public function __construct(string $path, Serializer $serializer, string $serializationFormat)
     {
+        $this->path = $path;
+        $this->serializer = $serializer;
+        $this->format = $serializationFormat;
+
         $this->contents = [];
+        $this->restore();
     }
 
     /**
@@ -33,6 +55,8 @@ class Stack
 
         // push the json onto the stack
         $this->contents[] = $json;
+
+        $this->persist();
         return true;
     }
 
@@ -46,7 +70,36 @@ class Stack
         if (empty($this->contents)) {
             return null;
         }
-        return array_pop($this->contents);
+
+        $item = array_pop($this->contents);
+        $this->persist();
+        return $item;
+    }
+
+    /**
+     * persist the stack contents
+     */
+    protected function persist()
+    {
+        $serialized = $this->serializer->serialize($this->contents, $this->format);
+        file_put_contents($this->path, $serialized);
+    }
+
+    /**
+     * restore stack contents from file
+     *
+     * @todo validate/sanitise on load
+     */
+    protected function restore()
+    {
+        // if the file doesn't exist do nothing
+        if (!is_file($this->path)) {
+            return;
+        }
+
+        $contents = file_get_contents($this->path);
+        $data = $this->serializer->decode($contents, $this->format);
+        $this->contents = $data;
     }
 
     /**
@@ -55,6 +108,7 @@ class Stack
     public function flush()
     {
         $this->contents = [];
+        $this->persist();
     }
 
     /**

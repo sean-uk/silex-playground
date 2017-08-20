@@ -10,11 +10,12 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 use SeanUk\Silex\Stack\Stack;
-use Symfony\Component\HttpFoundation\Request;
 use SeanUk\Silex\App\StackApp;
-use Doctrine\ORM\Tools\Setup;
-use Doctrine\ORM\EntityManager;
 use Silex\Provider\VarDumperServiceProvider;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Serializer\Encoder\YamlEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 // bootstrap silex
 $app = new Application();
@@ -30,19 +31,17 @@ $app->get('reverse/{string}', function ($string) {
     return new Response($reversed);
 });
 
-// doctrine orm service
-// setup: {@see http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/getting-started.html}
+// persistence service and storage param
+$app['stack.path'] = __DIR__.'/data/stack.yml';
+
+// configure a YAML serializer - {@see https://symfony.com/doc/current/components/serializer.html}
 // service creation: {@see https://silex.symfony.com/doc/2.0/services.html}
-$app['entity_manager'] = function () {
-    // 'useSimpleAnnotationReader' should be false: https://stackoverflow.com/a/19129147
-    $metadataConfig = Setup::createAnnotationMetadataConfiguration([__DIR__.'/src/Entity'], true, null, null, false);
-    $dbConfig = [
-        'driver' => 'pdo_sqlite',
-        'path' => __DIR__.'/data/stack.sqlite',
-    ];
-    $em = EntityManager::create($dbConfig, $metadataConfig);
-    return $em;
+$app['stack.serializer'] = function () {
+    $encoders = [new YamlEncoder()];
+    $normalizers = [new ObjectNormalizer()];
+    $serializer = new Serializer($normalizers, $encoders);
+    return $serializer;
 };
 
-$stack = new Stack();
+$stack = new Stack($app['stack.path'], $app['stack.serializer'], 'yaml');
 StackApp::build($app, $stack);

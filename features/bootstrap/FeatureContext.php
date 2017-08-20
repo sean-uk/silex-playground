@@ -12,6 +12,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Silex\Application;
 use SeanUk\Silex\Stack\Stack;
+use org\bovigo\vfs\vfsStream;
+use Symfony\Component\Serializer\Encoder\YamlEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
+
 
 /**
  * Defines application features from the specific context.
@@ -26,6 +31,13 @@ class FeatureContext implements Context
 
     /** @var Stack $stack */
     private $stack;
+
+    /** @var string $stack_path */
+    private $stack_path;
+
+    /** @var Serializer $serializer */
+    private $serializer;
+
     /**
      * Initializes context.
      *
@@ -35,6 +47,15 @@ class FeatureContext implements Context
      */
     public function __construct()
     {
+        // vfsStrem for FS mocking: {@see https://github.com/mikey179/vfsStream/wiki/Tutorial}
+        vfsStream::setup('root');
+        $this->stack_path = vfsStream::url('root/stack.yml');
+
+        // construct a yaml serializer
+        $encoders = [new YamlEncoder()];
+        $normalizers = [new ObjectNormalizer()];
+        $this->serializer = new Serializer($normalizers, $encoders);
+
         // build an app to test
         $this->iStartANewSession();
     }
@@ -180,7 +201,7 @@ class FeatureContext implements Context
     public function iStartANewSession()
     {
         $this->app = new Application();
-        $this->stack = new Stack();
+        $this->stack = new Stack($this->stack_path, $this->serializer, 'yaml');
         StackApp::build($this->app, $this->stack);
     }
 }
